@@ -1,5 +1,6 @@
 import os
 import pickle
+from pathlib import Path
 
 import numpy as np
 import torch
@@ -10,19 +11,23 @@ from transformers import AutoTokenizer
 from tqdm import tqdm
 
 
-class MLM(Dataset):
-    def __init__(self, dataset_id: str = "alpindale/light-novels",
-                 model_id: str = "bert-base-uncased",
+class MLMDateset(Dataset):
+    def __init__(self, dataset_id: str,
+                 model_id: str,
                  masking_prob: float = 0.15,
                  dataset_range: int = -1,
-                 max_length: int = 512):
+                 max_length: int = 512,
+                 tokens_path: str = "tokens/mlm_dataset.pkl"):
         self.dataset = load_dataset(dataset_id, split='train').to_pandas()
         if dataset_range != -1:
             self.dataset = self.dataset.head(dataset_range)
         self.tokenizer = AutoTokenizer.from_pretrained(model_id, max_length=max_length, truncation=True, padding=True)
         self.masking_prob = masking_prob
         self.max_length = max_length
-        self.tokenized_dataset_path = "../tokenized_dataset.pkl.save"
+        if tokens_path == "":
+            self.tokenized_dataset_path = "tokens/mlm_dataset.pkl"
+        else:
+            self.tokenized_dataset_path = tokens_path
         self.load_or_tokenize_dataset()
 
     def load_or_tokenize_dataset(self):
@@ -33,6 +38,8 @@ class MLM(Dataset):
         else:
             print("Tokenizing dataset...")
             self.tokenize_dataset()
+            file = Path(self.tokenized_dataset_path)
+            file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.tokenized_dataset_path, "wb") as f:
                 pickle.dump(self.dataset["tokens"], f)
 
@@ -54,21 +61,3 @@ class MLM(Dataset):
         }
 
 
-def collate_fn(batch):
-    # Sort the batch based on the sequence length
-    batch = sorted(batch, key=lambda x: len(x["input_ids"]), reverse=True)
-
-    input_ids = [torch.tensor(item["input_ids"]) for item in batch]
-    attention_mask = [torch.tensor(item["attention_mask"]) for item in batch]
-    labels = [torch.tensor(item["labels"]) for item in batch]
-
-    # Pad sequences to the same length
-    input_ids = pad_sequence(input_ids, batch_first=True, padding_value=0)
-    attention_mask = pad_sequence(attention_mask, batch_first=True, padding_value=0)
-    labels = pad_sequence(labels, batch_first=True, padding_value=-100)
-
-    return {
-        "input_ids": input_ids,
-        "attention_mask": attention_mask,
-        "labels": labels
-    }
