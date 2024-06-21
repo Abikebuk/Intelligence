@@ -37,7 +37,6 @@ def train(model_id,
 
     print("Loading model ...")
     model = RobertaForMaskedLM.from_pretrained(model_id, load_in_8bit=True)
-    print(model)
     # Initialize LoRA
     print("Initializing LoRA...")
     lora_config = lora.LoraConfig(
