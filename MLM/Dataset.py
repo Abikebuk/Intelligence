@@ -1,14 +1,11 @@
 import os
 import pickle
 from pathlib import Path
-
 import numpy as np
-import torch
 from datasets import load_dataset
-from torch.nn.utils.rnn import pad_sequence
 from torch.utils.data import Dataset
-from transformers import AutoTokenizer
 from tqdm import tqdm
+from transformers import AutoTokenizer
 
 
 class MLMDateset(Dataset):
@@ -39,7 +36,6 @@ class MLMDateset(Dataset):
             print("Tokenizing dataset...")
             self.tokenize_dataset()
             file = Path(self.tokenized_dataset_path)
-            file.parent.mkdir(parents=True, exist_ok=True)
             with open(self.tokenized_dataset_path, "wb") as f:
                 pickle.dump(self.dataset["tokens"], f)
 

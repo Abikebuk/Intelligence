@@ -1,6 +1,4 @@
 from datetime import datetime, timedelta
-from pathlib import Path
-
 import torch
 from peft import get_peft_model
 from peft.tuners import lora
@@ -37,6 +35,7 @@ def train(model_id,
 
     print("Loading model ...")
     model = RobertaForMaskedLM.from_pretrained(model_id, load_in_8bit=True)
+    print(model)
     # Initialize LoRA
     print("Initializing LoRA...")
     lora_config = lora.LoraConfig(
@@ -78,9 +77,7 @@ def train(model_id,
                 seconds=time_per_epoch.total_seconds() * (num_epochs - epoch - 1))
             progress_bar.set_postfix(estimated_finish_time=estimated_finish_time.strftime("%Y-%m-%d %H:%M:%S"))
 
-    file = Path(model_path)
-    file.parent.mkdir(parents=True, exist_ok=True)
-    torch.save(lora_model.state_dict(), model_path)
+    torch.save(lora_model.state_dict(), "models/lora_model.pt")
 
 
 def collate_fn(batch):
