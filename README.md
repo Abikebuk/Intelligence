@@ -1,4 +1,4 @@
-# Learning AI by myself
+# Intelligence
 This project is just a repo where I keep a trace of everything I am learning.  
 
 ## What if you stumble upon this repo
