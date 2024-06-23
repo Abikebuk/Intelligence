@@ -50,4 +50,9 @@ List of things I need to do to reach my goal.
   * [distilbert/distilroberta-base](https://huggingface.co/distilbert/distilroberta-base)
   * [astronomer/Llama-3-8B-Instruct-GPTQ-4-Bit](https://huggingface.co/astronomer/Llama-3-8B-Instruct-GPTQ-4-Bit)
   * [alpindale/light-novels](https://huggingface.co/datasets/alpindale/light-novels)
+  * [Sentiment Analysis](https://huggingface.co/blog/sentiment-analysis-twitter)
 * [PyTorch](https://pytorch.org/docs/stable/index.html)
+* [Text classification example by Claude Feldges](https://medium.com/@claude.feldges/text-classification-with-bert-in-tensorflow-and-pytorch-4e43e79673b3)
+* Used some AIs
+  * [Anthropics Claude Haiku](https://www.anthropic.com/)
+  * [Refact.ai](https://www.refact.ai/)
