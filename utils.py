@@ -21,4 +21,4 @@ def save_pickle(path, obj):
 
 
 def create_dirs(file_path: str):
-    pathlib.Path('/my/directory').mkdir(parents=True, exist_ok=True)
+    pathlib.Path(file_path).parent.mkdir(parents=True, exist_ok=True)
