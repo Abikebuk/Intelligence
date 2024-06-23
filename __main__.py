@@ -10,6 +10,7 @@ if __name__ == "__main__":
     ]
 
     mlm_conf = config.MLM
+    classify_conf = config.classify
 
     if "mlm_train" in to_run:
         MLM.train(
@@ -29,4 +30,7 @@ if __name__ == "__main__":
         Classification.classify(
             model_id=mlm_conf.model_id,
             dataset_id=mlm_conf.dataset_id,
+            label_list=classify_conf.labels,
+            dataset_range=1000,  # if None, will use the whole dataset
+            save_location="tokens/classified.pkl"
         )

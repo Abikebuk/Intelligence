@@ -16,6 +16,40 @@ MLM = {
 }
 MLM = DotDict(MLM)
 
+classify = {
+    "labels": [
+        "question",
+        "answer",
+        "statement",
+        "request",
+        "greeting",
+        "threat",
+        "acknowledgement",
+        "clarification",
+        "disagreement",
+        "toxic",
+        "insult",
+        "positive",
+        "negative",
+        "neutral",
+        "joke",
+        "sarcasm",
+        "anecdote",
+        "compliment",
+        "criticism",
+        "apology",
+        "suggestion",
+        "warning",
+        "invitation",
+        "small_talk",
+        "exclamation",
+        "complaint",
+        "encouragement",
+        "empathy"
+    ]
+}
+classify = DotDict(classify)
+
 default = {
     "mlm_tokens_location": "tokens/mlm_dataset.pkl",
     "mlm_model_location": "models/mlm_model.pt",

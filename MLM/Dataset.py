@@ -6,6 +6,7 @@ from datasets import load_dataset
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import AutoTokenizer
+from config import default
 
 
 class MLMDateset(Dataset):
@@ -22,7 +23,7 @@ class MLMDateset(Dataset):
         self.masking_prob = masking_prob
         self.max_length = max_length
         if tokens_path == "":
-            self.tokenized_dataset_path = "tokens/mlm_dataset.pkl"
+            self.tokenized_dataset_path = default.mlm_tokens_location
         else:
             self.tokenized_dataset_path = tokens_path
         self.load_or_tokenize_dataset()
