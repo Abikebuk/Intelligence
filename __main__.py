@@ -1,10 +1,12 @@
 import MLM
 import config
+import Classification
 
 if __name__ == "__main__":
     to_run = [
-        "mlm_train",
-        "mlm_inference"
+        # "mlm_train",
+        # "mlm_inference",
+        "classify"
     ]
 
     mlm_conf = config.MLM
@@ -22,4 +24,9 @@ if __name__ == "__main__":
             model_id=mlm_conf.model_id,
             weight_location=mlm_conf.model_path,  # location is model_path (result from training)
             input_text="The paintbrush was angry at the color the artist chose to use.",
+        )
+    if "classify" in to_run:
+        Classification.classify(
+            model_id=mlm_conf.model_id,
+            dataset_id=mlm_conf.dataset_id,
         )
