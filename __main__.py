@@ -31,6 +31,7 @@ if __name__ == "__main__":
             model_id=mlm_conf.model_id,
             dataset_id=mlm_conf.dataset_id,
             label_list=classify_conf.labels,
-            dataset_range=1000,  # if None, will use the whole dataset
-            save_location="tokens/classified.pkl"
+            dataset_range=None,  # if None, will use the whole dataset
+            save_location=None,
+            output_file="test.csv"
         )
