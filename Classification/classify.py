@@ -4,11 +4,11 @@ from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from progress_table import ProgressTable
 from sklearn.utils import shuffle
-
+from config import default
 import utils
 
 
-def classify(model_id, dataset_id, label_list, output_file, dataset_range=None, save_location=None, batch_size=8,
+def classify(model_id, dataset_id, label_list, output_file=default.classifier_output_location, dataset_range=None, batch_size=8,
              num_epoch=5):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
