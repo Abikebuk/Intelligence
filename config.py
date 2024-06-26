@@ -16,8 +16,10 @@ MLM = {
 }
 MLM = DotDict(MLM)
 
-classify = {
-    "labels": [
+classifier = {
+    "model_id": "SamLowe/roberta-base-go_emotions",
+    "dataset_id": "alpindale/light-novels",
+    "labels": [  # Label of SamLowe/roberta-base-go_emotions
         "disappointment",
         "sadness",
         "annoyance",
@@ -48,7 +50,7 @@ classify = {
         "pride"
     ]
 }
-classify = DotDict(classify)
+classifier = DotDict(classifier)
 
 default = {
     "mlm_tokens_location": "tokens/mlm_dataset.pkl",
