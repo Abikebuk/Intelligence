@@ -33,5 +33,7 @@ if __name__ == "__main__":
             label_list=classify_conf.labels,
             dataset_range=None,  # if None, will use the whole dataset
             save_location=None,
-            output_file="test.csv"
+            output_file="data/test.csv",
+            batch_size=8,
+            num_epoch=4
         )
