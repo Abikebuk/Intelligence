@@ -36,11 +36,12 @@ List of things I need to do to reach my goal.
   * [x] Train Roberta with MLM (Maskeked Language Modeling)
   * [ ] Perfom inference with bert
   * [ ] Verify the training goes in the direction I want
-  * [ ] Classify data with bert
+  * [x] Classify data with bert
+    * Classification works fine but to be tested
 * Llama3
   * [x] Find the right Llama3 model to use.
     - Chose ``astronomer/Llama-3-8B-Instruct-GPTQ-4-Bit``
-  * [x] Train llama3
+  * [ ] Train llama3
   * [ ] Verify the training goes in the direction I want
   * [ ] Train llama3 with reinforcement learning
 
@@ -56,3 +57,6 @@ List of things I need to do to reach my goal.
 * Used some AIs
   * [Anthropics Claude Haiku](https://www.anthropic.com/)
   * [Refact.ai](https://www.refact.ai/)
+
+## Credit
+* @Quinntyx for giving me the repo name idea which is a direct reference to Apple Intelligence.
