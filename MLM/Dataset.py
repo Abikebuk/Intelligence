@@ -6,6 +6,8 @@ from datasets import load_dataset
 from torch.utils.data import Dataset
 from tqdm import tqdm
 from transformers import AutoTokenizer
+
+import utils
 from config import default
 
 
@@ -37,6 +39,7 @@ class MLMDateset(Dataset):
             print("Tokenizing dataset...")
             self.tokenize_dataset()
             file = Path(self.tokenized_dataset_path)
+            utils.create_dirs(self.tokenized_dataset_path)
             with open(self.tokenized_dataset_path, "wb") as f:
                 pickle.dump(self.dataset["tokens"], f)
 

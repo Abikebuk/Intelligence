@@ -54,7 +54,7 @@ classifier = DotDict(classifier)
 
 default = {
     "mlm_tokens_location": "tokens/mlm_dataset.pkl",
-    "mlm_model_location": "models/mlm_model.pt",
+    "mlm_model_location": "models/mlm_result.pt",
     "classifier_output_location": "data/classified_data.csv"
 }
 default = DotDict(default)

@@ -7,6 +7,9 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from transformers import get_linear_schedule_with_warmup, RobertaForMaskedLM
 from tqdm import tqdm
+from config import default
+
+import utils
 from .Dataset import MLMDateset
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -18,7 +21,7 @@ def train(model_id,
           batch_size=16,
           max_dataset_size=-1,
           tokens_path="",
-          model_path="models/mlm_model.pt"):
+          save_location=default.mlm_model_location):
     # Actual mlm
     print("Preparing dataset with Masked Language Modeling...")
     mlm = MLMDateset(
@@ -77,7 +80,8 @@ def train(model_id,
                 seconds=time_per_epoch.total_seconds() * (num_epochs - epoch - 1))
             progress_bar.set_postfix(estimated_finish_time=estimated_finish_time.strftime("%Y-%m-%d %H:%M:%S"))
 
-    torch.save(lora_model.state_dict(), "models/lora_model.pt")
+    utils.create_dirs(save_location)
+    torch.save(lora_model.state_dict(), save_location)
 
 
 def collate_fn(batch):

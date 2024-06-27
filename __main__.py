@@ -4,8 +4,8 @@ import Classification
 
 if __name__ == "__main__":
     to_run = [
-        # "mlm_train",
-        # "mlm_inference",
+        "mlm_train",
+        "mlm_inference",
         "classify"
     ]
 
