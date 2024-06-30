@@ -92,6 +92,6 @@ def classify(model_id, dataset_id, label_list, output_file=default.classifier_ou
                     if prediction is not None:
                         row = [prediction['Text'], prediction['Predicted Label']] + prediction['Confidences']
                         writer.writerow(row)
-            table.next_row(split=epoch)
+            table.next_row()
     table.close()
     print(f"Classification completed for {num_epoch} epochs. Best results saved to {output_file}")
