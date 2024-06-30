@@ -1,5 +1,6 @@
 /models/
 /tokens/
 /data/
+/cache/
 /.idea/
 /__pycache__/

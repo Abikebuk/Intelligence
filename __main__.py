@@ -1,19 +1,22 @@
 import MLM
 import config
 import Classification
+from Training import train
 
 if __name__ == "__main__":
     to_run = [
-        "mlm_train",
-        "mlm_inference",
-        "classify"
+        # "mlm_train",
+        # "mlm_inference",
+        # "classify",
+        "train",
     ]
 
     mlm_conf = config.MLM
     classifier_conf = config.classifier
+    trainer_conf = config.trainer
 
     if "mlm_train" in to_run:
-        MLM.train(
+        MLM.mlm_train(
             model_id=mlm_conf.model_id,
             dataset_id=mlm_conf.dataset_id,
             num_epochs=mlm_conf.num_epochs,
@@ -34,4 +37,9 @@ if __name__ == "__main__":
             dataset_range=10,  # if None, will use the whole dataset
             batch_size=8,
             num_epoch=4
+        )
+    if "train" in to_run:
+        train(
+            model_id=trainer_conf.model_id,
+            dataset_id=trainer_conf.dataset_id,
         )

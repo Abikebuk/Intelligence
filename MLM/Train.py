@@ -15,13 +15,13 @@ from .Dataset import MLMDateset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def train(model_id,
-          dataset_id,
-          num_epochs=3,
-          batch_size=16,
-          max_dataset_size=-1,
-          tokens_path="",
-          save_location=default.mlm_model_location):
+def mlm_train(model_id,
+              dataset_id,
+              num_epochs=3,
+              batch_size=16,
+              max_dataset_size=-1,
+              tokens_path="",
+              save_location=default.mlm_model_location):
     # Actual mlm
     print("Preparing dataset with Masked Language Modeling...")
     mlm = MLMDateset(
@@ -88,8 +88,8 @@ def collate_fn(batch):
     # Sort the batch based on the sequence length
     batch = sorted(batch, key=lambda x: len(x["input_ids"]), reverse=True)
 
-    input_ids = [torch.tensor(item["input_ids"]) for item in batch]
-    attention_mask = [torch.tensor(item["attention_mask"]) for item in batch]
+    input_ids = [torch.tensor(item["input_ids"]).to(device) for item in batch]
+    attention_mask = [torch.tensor(item["attention_mask"]).to(device) for item in batch]
     labels = [torch.tensor(item["labels"]) for item in batch]
 
     # Pad sequences to the same length

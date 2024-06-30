@@ -52,6 +52,13 @@ classifier = {
 }
 classifier = DotDict(classifier)
 
+trainer = {
+    # "model_id": "unsloth/llama-3-8b-Instruct-bnb-4bit",
+    "model_id": "ISTA-DASLab/Meta-Llama-3-8B-AQLM-2Bit-1x16",
+    "dataset_id": "./data/classifier-result.csv",
+}
+trainer = DotDict(trainer)
+
 default = {
     "mlm_tokens_location": "tokens/mlm_dataset.pkl",
     "mlm_model_location": "models/mlm_result.pt",
