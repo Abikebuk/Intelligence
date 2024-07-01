@@ -11,11 +11,15 @@ from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 
 
 def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float = 0.8, batch_size: int = 1,
-          learning_rate=5e-5, epochs=1):
+          learning_rate=5e-5, epochs=2):
     torch.cuda.empty_cache()  # Optionally clear the cache
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = AutoModelForCausalLM.from_pretrained(model_id).to(device)
-    print(model)
+    label_filter = [
+        "joy",
+        "disgust",
+        "desire"
+    ]
     # LoRA config
     lora_config = LoraConfig(
         r=8,
@@ -30,9 +34,14 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
     tokenizer = AutoTokenizer.from_pretrained(model_id, use_fast=True)
     dataset = load_dataset("csv", data_files=dataset_id, cache_dir="cache")['train']
     print(dataset)
-    dataset = preprocess_dataset(dataset, min_confidence)
+    dataset = preprocess_dataset(dataset, label_filter, min_confidence)
     print(dataset.column_names)
     dataset = dataset.rename_column('Predicted Label', 'label')
+    columns = dataset.column_names
+    for c in columns:
+        if c not in label_filter and c != 'Text' and c != 'label':
+            dataset = dataset.remove_columns(c)
+    print(dataset)
     dataset = tokenize_text(dataset, tokenizer)
     print(dataset)
 
@@ -43,8 +52,8 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
     eval_dataset = dataset['test']
     print(tokenizer.pad_token_id)
     # create dataloader
-    train_dataloader = DataLoader(train_dataset, batch_size=batch_size)
-    eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size)
+    train_dataloader = DataLoader(train_dataset, batch_size=batch_size, collate_fn=collate_fn)
+    eval_dataloader = DataLoader(eval_dataset, batch_size=batch_size, collate_fn=collate_fn)
 
     # configs
     optimizer = AdamW(model.parameters(), lr=learning_rate)
@@ -70,8 +79,8 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
         model.eval()
         eval_loss = 0
         for batch in tqdm(eval_dataloader, desc="Evaluating"):
-            input_ids = torch.stack([torch.tensor(item) for item in batch['input_ids']])
-            attention_mask = torch.stack([torch.tensor(item) for item in batch['attention_mask']])
+            input_ids = torch.stack([torch.tensor(item) for item in batch['input_ids']]).to(device)
+            attention_mask = torch.stack([torch.tensor(item) for item in batch['attention_mask']]).to(device)
 
             outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
             loss = outputs.loss
@@ -83,11 +92,11 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
     torch.save(model.state_dict(), "final_model.pth")
 
 
-def preprocess_dataset(dataset, min_confidence):
+def preprocess_dataset(dataset, label_filter, min_confidence):
     def gte_confidence(row):
         predicted_label = row["Predicted Label"]
         confidence_value = row[predicted_label]
-        return isinstance(row['Text'], str) and confidence_value >= min_confidence
+        return isinstance(row['Text'], str) and predicted_label in label_filter and confidence_value >= min_confidence
 
     return dataset.filter(gte_confidence)
 
@@ -107,10 +116,10 @@ def collate_fn(batch):
     input_ids = [torch.tensor(item['input_ids']) for item in batch]
     attention_mask = [torch.tensor(item['attention_mask']) for item in batch]
 
-    # input_ids_padded = pad_sequence(input_ids, batch_first=True)
-    # attention_mask_padded = pad_sequence(attention_mask, batch_first=True)
+    input_ids_padded = pad_sequence(input_ids, batch_first=True)
+    attention_mask_padded = pad_sequence(attention_mask, batch_first=True)
 
     return {
-        'input_ids': input_ids,
-        'attention_mask': attention_mask
+        'input_ids': input_ids_padded,
+        'attention_mask': attention_mask_padded
     }
