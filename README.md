@@ -41,7 +41,9 @@ List of things I need to do to reach my goal.
 * Llama3
   * [x] Find the right Llama3 model to use.
     - Chose ``astronomer/Llama-3-8B-Instruct-GPTQ-4-Bit``
-  * [ ] Train llama3
+    - Changed it to ``ISTA-DASLab/Meta-Llama-3-8B-AQLM-2Bit-1x16`` instead. I don't have enough GPU VRAM to train the previous model.
+  * [x] Train llama3
+    - Would succeed to train on with a batch size of 1. It would go twice slower than a batch size of 2 but I don't have enough VRAM.
   * [ ] Verify the training goes in the direction I want
   * [ ] Train llama3 with reinforcement learning
 
@@ -50,6 +52,7 @@ List of things I need to do to reach my goal.
 * [HunggingFace](https://huggingface.co/)
   * [distilbert/distilroberta-base](https://huggingface.co/distilbert/distilroberta-base)
   * [astronomer/Llama-3-8B-Instruct-GPTQ-4-Bit](https://huggingface.co/astronomer/Llama-3-8B-Instruct-GPTQ-4-Bit)
+  * [ISTA-DASLab/Meta-Llama-3-8B-AQLM-2Bit-1x16](https://huggingface.co/ISTA-DASLab/Meta-Llama-3-8B-AQLM-2Bit-1x16)
   * [alpindale/light-novels](https://huggingface.co/datasets/alpindale/light-novels)
   * [Sentiment Analysis](https://huggingface.co/blog/sentiment-analysis-twitter)
 * [PyTorch](https://pytorch.org/docs/stable/index.html)
