@@ -10,3 +10,4 @@ bitsandbytes
 optimum
 auto-gptq
 aqlm[gpu,cpu]
+progress_table
