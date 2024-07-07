@@ -42,7 +42,7 @@ if __name__ == "__main__":
         train(
             model_id=trainer_conf.model_id,
             dataset_id=trainer_conf.dataset_id,
-            batch_size=4,
+            batch_size=6,
             label_filter=[
                 "disgust",
                 "annoyance",

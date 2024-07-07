@@ -6,15 +6,17 @@ from torch.optim import AdamW
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from torch.cuda.amp import autocast, GradScaler
 
 import config
 import utils
 
 
-def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float = 0.8, batch_size: int = 8,
-          learning_rate=5e-5, epochs=4, label_filter=None, model_output=config.default.trainer_output_location):
+def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float = 0.8, batch_size: int = 16,
+          learning_rate=1e-5, epochs=4, label_filter=None, model_output=config.default.trainer_output_location,
+          gradient_accumulation_step = 2):
     torch.cuda.empty_cache()
-    model = AutoModelForCausalLM.from_pretrained(model_id)#.to(device)
+    model = AutoModelForCausalLM.from_pretrained(model_id, use_cache=False)#.to(device)
     # LoRA config
     lora_config = LoraConfig(
         r=8,
@@ -67,6 +69,7 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
 
     # configs
     optimizer = AdamW(model.parameters(), lr=learning_rate)
+    scaler = GradScaler()
 
     # training
     print("Training model...")
@@ -74,18 +77,23 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
         # Training dataset
         model.train()
         total_loss = 0
-        for batch in tqdm(train_dataloader, desc=f"Epoch {epoch + 1}/{epochs}"):
-            optimizer.zero_grad()
+        for i, batch in enumerate(tqdm(train_dataloader, desc=f"Epoch {epoch + 1}/{epochs}")):
             input_ids = torch.stack([item.clone().detach() for item in batch['input_ids']])#.to(device)
             attention_mask = torch.stack([item.clone().detach()  for item in batch['attention_mask']])#.to(device)
 
-            outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
-            loss = outputs.loss
+            with autocast():
+                outputs = model(input_ids=input_ids, attention_mask=attention_mask, labels=input_ids)
+                loss = outputs.loss
 
-            loss.backward()
-            optimizer.step()
+            scaler.scale(loss).backward()
 
-            total_loss += loss.item()
+            # gradient accumulation
+            if (i + 1) % gradient_accumulation_step == 0:
+                scaler.step(optimizer)
+                scaler.update()
+                optimizer.zero_grad()
+
+            total_loss += loss.item() * gradient_accumulation_step
         avg_loss = total_loss / len(train_dataloader)
         print(f"Average loss: {avg_loss:.4f}'")
 
@@ -103,9 +111,9 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
         avg_eval_loss = eval_loss / len(eval_dataloader)
         print(f"Average evaluation loss: {avg_eval_loss:.4f}'")
 
-    # Save the model
-    utils.create_dirs(model_output)
-    torch.save(model.state_dict(), model_output)
+        # Save the model
+        utils.create_dirs(model_output)
+        torch.save(model.state_dict(), model_output)
 
 def preprocess_dataset(dataset, label_filter, min_confidence):
     def gte_confidence(row):
