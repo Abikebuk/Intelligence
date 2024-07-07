@@ -5,9 +5,10 @@ tqdm>=4.66.4
 numpy>=2.0.0
 datasets>=2.20.0
 scikit-learn>=1.5.0
-accelerate
-bitsandbytes
+accelerate~=0.31.0
+bitsandbytes~=0.43.1
 optimum
-auto-gptq
+# auto-gptq
 aqlm[gpu,cpu]
 progress_table
+deepspeed~=0.14.4

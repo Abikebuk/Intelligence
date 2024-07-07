@@ -46,8 +46,8 @@ if __name__ == "__main__":
             label_filter=[
                 "disgust",
                 "annoyance",
-                "desire",
                 "excitement",
                 "gratitude"
             ],
+            gradient_accumulation_step=2,
         )

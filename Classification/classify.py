@@ -3,7 +3,7 @@ import torch
 from datasets import load_dataset
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from progress_table import ProgressTable
-from sklearn.utils import shuffle
+# from sklearn.utils import shuffle
 from config import default
 import utils
 
