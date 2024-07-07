@@ -34,12 +34,20 @@ if __name__ == "__main__":
             model_id=classifier_conf.model_id,
             dataset_id=classifier_conf.dataset_id,
             label_list=classifier_conf.labels,
-            dataset_range=10,  # if None, will use the whole dataset
-            batch_size=8,
+            dataset_range=None,  # if None, will use the whole dataset
+            batch_size=16,
             num_epoch=4
         )
     if "train" in to_run:
         train(
             model_id=trainer_conf.model_id,
             dataset_id=trainer_conf.dataset_id,
+            batch_size=4,
+            label_filter=[
+                "disgust",
+                "annoyance",
+                "desire",
+                "excitement",
+                "gratitude"
+            ],
         )
