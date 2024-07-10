@@ -35,19 +35,20 @@ if __name__ == "__main__":
             dataset_id=classifier_conf.dataset_id,
             label_list=classifier_conf.labels,
             dataset_range=None,  # if None, will use the whole dataset
-            batch_size=16,
-            num_epoch=4
+            batch_size=8,
+            num_epoch=2,
         )
     if "train" in to_run:
         train(
             model_id=trainer_conf.model_id,
             dataset_id=trainer_conf.dataset_id,
-            batch_size=6,
+            batch_size=12,
             label_filter=[
                 "disgust",
                 "annoyance",
                 "excitement",
                 "gratitude"
             ],
-            gradient_accumulation_step=2,
+            gradient_accumulation_step=4,
+            clear_cache_every_x_batches=100
         )
