@@ -24,6 +24,7 @@ List of things I need to do to reach my goal.
 
 ## Limitations
 * I use a good laptop but only own a RTX 3070 which contains only 8gb of VRAM and might not suitable for AI. In that case, I am trying to use lower quntized model and other workaround to make it work in my case.
+  * Upgraded to a 3090. I have 24gb now!
 * I don't want to pay any gpu cloud services (they are expensive). I am considering buying a GPU but I am reluctant to that idea.
 
 ## Dependency hell
@@ -73,7 +74,8 @@ Took me a while to find how to make it work but it is functional now.
     - Would succeed to train on with a batch size of 1. It would go twice slower than a batch size of 2 but I don't have enough VRAM.
   * [ ] Optimize training
     *  [x] Find a way to reduce VRAM usage
-      - Used Deepspeed to decrease VRAM usage by a decent amount. I was able to train only a batch size of 4. Now it has increased to 6.
+      - ~~Used Deepspeed to decrease VRAM usage by a decent amount. I was able to train only a batch size of 4. Now it has increased to 6.~~
+      - Actually can go up to 12 with sequence length limit.
     *  [x] Find a way to reduce training time
       - Deepspeed on stage 2 is literally twice faster.
     *  [ ] Find a way to increase training quality
