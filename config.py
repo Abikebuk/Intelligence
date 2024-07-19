@@ -64,6 +64,6 @@ default = {
     "mlm_tokens_location": "tokens/mlm_dataset.pkl",
     "mlm_model_location": "models/mlm_result.pt",
     "classifier_output_location": "data/classified_data.csv",
-    "trainer_output_location": "models/result.pt",
+    "trainer_output_location": "models/fp32result.bin",
 }
 default = DotDict(default)

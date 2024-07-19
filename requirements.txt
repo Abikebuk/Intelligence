@@ -8,7 +8,7 @@ scikit-learn>=1.5.0
 accelerate~=0.31.0
 bitsandbytes~=0.43.1
 optimum
-# auto-gptq
 aqlm[gpu,cpu]
 progress_table
 deepspeed~=0.14.4
+auto-gptq

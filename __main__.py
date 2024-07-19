@@ -1,6 +1,7 @@
 import MLM
 import config
 import Classification
+from Inference import run_inference
 from Training import train
 
 if __name__ == "__main__":
@@ -8,7 +9,8 @@ if __name__ == "__main__":
         # "mlm_train",
         # "mlm_inference",
         # "classify",
-        "train",
+        # "train",
+        "inference",
     ]
 
     mlm_conf = config.MLM
@@ -43,12 +45,16 @@ if __name__ == "__main__":
             model_id=trainer_conf.model_id,
             dataset_id=trainer_conf.dataset_id,
             batch_size=12,
-            label_filter=[
-                "disgust",
-                "annoyance",
-                "excitement",
-                "gratitude"
-            ],
+            # label_filter=[
+            #    "disgust",
+            #    "annoyance",
+            #    "excitement",
+            #    "gratitude"
+            #],
             gradient_accumulation_step=4,
-            clear_cache_every_x_batches=100
+            clear_cache_every_x_batches=1000,
+            limit_dataset_size=10000,
+            epochs=1,
         )
+    if "inference" in to_run:
+        run_inference(trainer_conf.model_id)
