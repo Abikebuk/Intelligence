@@ -16,8 +16,8 @@ from .CheckpointSampler import dataloader_to_step
 
 def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float = 0.8, batch_size: int = 16,
           learning_rate=2e-5, epochs=4, label_filter=None, model_output=config.default.trainer_output_location,
-          gradient_accumulation_step=1, clear_cache_every_x_batches: int = 100, checkpoint_save_interval: int = 2000,
-          checkpoint_dir="checkpoint", padding_max_size=100):
+          gradient_accumulation_step=1, clear_cache_every_x_batches: int = 100, checkpoint_save_interval: int = None,
+          checkpoint_dir="checkpoint", padding_max_size=100, limit_dataset_size=None):
     # TODO: Checkpoints don't work well
     # Initialization
     torch.cuda.empty_cache()
@@ -77,6 +77,9 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
     # Split dataset
     print("Splitting dataset...")
     dataset = dataset.shuffle(seed=42)
+    if limit_dataset_size is not None and limit_dataset_size < len(dataset):
+        dataset = dataset.select(range(limit_dataset_size))
+        print("Limiting dataset size to {}".format(limit_dataset_size))
     dataset = dataset.train_test_split(test_size=eval_ratio)
     train_dataset = dataset['train']
     eval_dataset = dataset['test']
@@ -141,7 +144,7 @@ def train(model_id, dataset_id, eval_ratio: float = 0.2, min_confidence: float =
             table.update("Loss", loss)
             table.update("Average Loss", total_loss / (i + 1))
             # Checkpoint saving
-            if i != 0 and i % checkpoint_save_interval == 0:
+            if checkpoint_save_interval is not None and i != 0 and i % checkpoint_save_interval == 0:
                 training_state['step'] = i
                 training_state['total_loss'] = total_loss
                 model_engine.save_checkpoint(checkpoint_dir, client_state=training_state)
@@ -241,11 +244,11 @@ def create_config(batch_size, gradient_accumulation_step, learning_rate):
         "zero_optimization": {
             "stage": 2,
             "offload_optimizer": {
-                "device": "cpu",
+                "device": "nvme",
                 "pin_memory": True
             },
             "offload_param": {
-                "device": "cpu",
+                "device": "nvme",
                 "pin_memory": True
             },
             "overlap_comm": True,
@@ -282,6 +285,35 @@ def create_config(batch_size, gradient_accumulation_step, learning_rate):
             "enabled": False,
             "verbose": False,
             "prof_all": False
+        },
+        "quantize_training": {
+            "enabled": True,
+            "quantize_verbose": True,
+            "quantizer_kernel": True,
+            "quantize_type": "symmetric",
+            "quantize_bits": {
+                "start_bits": 16,
+                "target_bits": 4
+            },
+            "quantize_schedule": {
+                "quantize_period": 10,
+                "schedule_offset": 0
+            },
+            "quantize_groups": 8,
+            "fp16_mixed_quantize": {
+                "enabled": True,
+                "quantize_change_ratio": 0.001
+            },
+            "eigenvalue": {
+                "enabled": True,
+                "verbose": True,
+                "max_iter": 50,
+                "tol": 1e-2,
+                "stability": 0,
+                "gas_boundary_resolution": 1,
+                "layer_name": "bert.encoder.layer",
+                "layer_num": 12
+            }
         }
     }
 
