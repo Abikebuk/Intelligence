@@ -81,6 +81,17 @@ Took me a while to find how to make it work but it is functional now.
     *  [ ] Find a way to increase training quality
   * [ ] Verify the training goes in the direction I want
   * [ ] Train llama3 with reinforcement learning
+  * [ ] Run inference
+    * [x] Make a chat like inference
+    * [ ] Personality building
+    * [ ] Find and implement strategies of discussion
+      * [x] Implement frequency penalty
+      * [ ] Implement end of sentences strategies. 
+      * [x] Implement P-Sampling.
+      * [ ] Other strategies?
+    * [x] Find a funny prompt template
+  * [ ] Add new words from Urban Dictionary
+    *  [ ] Try to add one word which i'm pretty sure doesn't exists in Llama3: [Stardenburdenhardenbart](https://www.urbandictionary.com/define.php?term=Stardenburdenhardenbart)
 
 
 ## References
@@ -96,6 +107,9 @@ Took me a while to find how to make it work but it is functional now.
 * Used some AIs
   * [Anthropics Claude Haiku](https://www.anthropic.com/)
   * [Refact.ai](https://www.refact.ai/)
-
+* Inspiration
+  * [SchizoDev](https://www.youtube.com/@SchizoDev)
+  * [Neuro-Sama/Vedal987](https://www.twitch.tv/vedal987)
+    * He is doing funny Vtubers AIs
 ## Credit
 * @Quinntyx for giving me the repo name idea which is a direct reference to Apple Intelligence.
