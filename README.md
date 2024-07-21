@@ -108,8 +108,8 @@ Took me a while to find how to make it work but it is functional now.
   * [Anthropics Claude Haiku](https://www.anthropic.com/)
   * [Refact.ai](https://www.refact.ai/)
 * Inspiration
-  * [SchizoDev](https://www.youtube.com/@SchizoDev)
-  * [Neuro-Sama/Vedal987](https://www.twitch.tv/vedal987)
-    * He is doing funny Vtubers AIs
+  * [SchizoDev](https://www.youtube.com/@SchizoDev) : He is doing funny Vtubers AIs
+
+  * [Neuro-Sama/Vedal987](https://www.twitch.tv/vedal987) : Biggest vtuber AI channel in my knowledge
 ## Credit
 * @Quinntyx for giving me the repo name idea which is a direct reference to Apple Intelligence.

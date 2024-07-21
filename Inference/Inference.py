@@ -19,15 +19,15 @@ def run_inference(model_id, max_token=512, p=0.5, frequency_penalty=0.001):
 
     # Conversation config
     conversation_history = []
-    first_prompt = True
 
     # Various fixes
     model.generation_config.pad_token_id = tokenizer.pad_token_id # HF already does that but it removes the warning
-    sys.stdin.reconfigure(encoding='ISO-8859-1') # Fixes issue with linux terminal
+    sys.stdin.reconfigure(encoding='ISO-8859-1') # Fixes crashing issue with linux terminal
 
     # Conversation loop
     while True:
         try:
+            # First prompt skip since it is the setup prompt
             if first_prompt:
                 user_input = (
                     "- Setup: You play the role of artificial intelligence Vtuber named 'Ai'. You interact with 'chat', the stream chat and 'Abikebuk', the creator of 'Ai'.\n"
