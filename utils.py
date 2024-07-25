@@ -41,3 +41,22 @@ def get_token_length_stats(dataset):
         f"75%: {dataset_token_length[int(len(dataset_token_length) * 0.05)]} | 85%: {dataset_token_length[int(len(dataset_token_length) * 0.85)]} | 95%: {dataset_token_length[int(len(dataset_token_length) * 0.95)]}")
     print(f"median: {statistics.median(dataset_token_length)}")
     print()
+
+def get_tokens_as_list(tokenizer, word_list):
+    """Code token from https://huggingface.co/docs/transformers/v4.42.0/en/internal/generation_utils#transformers.NoBadWordsLogitsProcessor
+       Converts a sequence of words into a list of tokens"""
+    tokens_list = []
+    for word in word_list:
+        tokenized_word = tokenizer(word, add_special_tokens=False).input_ids[0]
+        tokens_list.append(tokenized_word)
+    return tokens_list
+
+def get_all_tokens_containing_word(tokenizer, words):
+    res = []
+    # Can be written in one line, but I can't print anything in this form so it is going to take 5 lines
+    for token, token_id in tokenizer.vocab.items():
+        for word in words:
+            if word in token:
+                print((word, token), words)
+                res.append(token_id)
+    return res
