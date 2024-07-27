@@ -7,7 +7,7 @@ I hope you don't expect anything but if you are have any question or are willing
 ## Goal
 My main goal is to train a LLM, Llama3, with reinforcement learning and be able to feed it data from the web through web APIs or maybe giving it access to a web browser.
 
-## Movitvations
+## Motivations
 I want to learn AI. I am basically beginning rom scratch. I don't know if this repo will results in anything meaningful but i'll try my best.
 
 ## What I need?
@@ -81,14 +81,19 @@ Took me a while to find how to make it work but it is functional now.
     *  [ ] Find a way to increase training quality
   * [ ] Verify the training goes in the direction I want
   * [ ] Train llama3 with reinforcement learning
+  * [ ] Personality building
+    * [ ] Use Llama3 to build personality to edit a dataset giving it "personality"
+    * [ ] Train the model on the result dataset metioned above
   * [ ] Run inference
+    * [x] Make inference faster
+      * With the use of ExLlamaV2, it is blazing fast!
     * [x] Make a chat like inference
-    * [ ] Personality building
     * [ ] Find and implement strategies of discussion
-      * [x] Implement frequency penalty
-      * [ ] Implement end of sentences strategies. 
-      * [x] Implement P-Sampling.
-      * [ ] Other strategies?
+      * [x] ~~Implement frequency penalty~~
+      * [x] ~~Implement end of sentences strategies.~~ 
+      * [x] ~~Implement P-Sampling.~~
+      * [x] ~~Other strategies?~~
+      * [ ] Going back from scratch. I don't like my current approach.
     * [x] Find a funny prompt template
   * [ ] Add new words from Urban Dictionary
     *  [ ] Try to add one word which i'm pretty sure doesn't exists in Llama3: [Stardenburdenhardenbart](https://www.urbandictionary.com/define.php?term=Stardenburdenhardenbart)
@@ -104,6 +109,7 @@ Took me a while to find how to make it work but it is functional now.
 * [PyTorch](https://pytorch.org/docs/stable/index.html)
 * [Text classification example by Claude Feldges](https://medium.com/@claude.feldges/text-classification-with-bert-in-tensorflow-and-pytorch-4e43e79673b3)
 * [Deepspeed](https://github.com/microsoft/DeepSpeed)
+* [ExLlamaV2](https://github.com/turboderp/exllamav2)
 * Used some AIs
   * [Anthropics Claude Haiku](https://www.anthropic.com/)
   * [Refact.ai](https://www.refact.ai/)
