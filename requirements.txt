@@ -12,3 +12,5 @@ aqlm[gpu,cpu]
 progress_table
 deepspeed~=0.14.4
 auto-gptq
+exllamav2
+flash-attn

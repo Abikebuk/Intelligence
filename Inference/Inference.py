@@ -1,5 +1,8 @@
 import sys
 import torch
+from exllamav2 import ExLlamaV2Cache, ExLlamaV2Config, ExLlamaV2Tokenizer, ExLlamaV2
+from exllamav2.generator import ExLlamaV2DynamicGenerator, ExLlamaV2DynamicJob, ExLlamaV2Sampler
+from huggingface_hub import hf_hub_download, snapshot_download
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from transformers.modeling_utils import unwrap_model
 
@@ -8,13 +11,39 @@ import utils
 
 def run_inference(model_id, max_token=256):
     device = "cuda"
+    model_id = "turboderp/Llama-3.1-8B-Instruct-exl2"
     print(torch.cuda.is_available())
-    model = AutoModelForCausalLM.from_pretrained(model_id, device_map=0)
-    model = unwrap_model(model)
+    # model = AutoModelForCausalLM.from_pretrained(model_id, device_map=0, revision="4.0bpw", cache_dir="models")
+    # model = unwrap_model(model)
 
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
-    model.load_state_dict(torch.load("models/fp32result.bin", weights_only=True), strict=False)
-    model.eval()
+
+    # model.load_state_dict(torch.load("models/fp32result.bin", weights_only=True), strict=False)
+    # model.eval()
+
+    # tokenizer = AutoTokenizer.from_pretrained(model_id)
+
+    # Exllamav2
+    model_dir = f"models/{model_id}"
+    snapshot_download(repo_id=model_id, revision="4.0bpw", local_dir=model_dir)
+    config = ExLlamaV2Config(model_dir)
+    config.arch_compat_overrides()
+    model = ExLlamaV2(config)
+    cache = ExLlamaV2Cache(model, max_seq_len=65536, lazy=True)
+    model.load_autosplit(cache, progress=True)
+
+    tokenizer = ExLlamaV2Tokenizer(config)
+
+    generator = ExLlamaV2DynamicGenerator(
+        model=model,
+        cache=cache,
+        tokenizer=tokenizer,
+    )
+
+    gen_settings = ExLlamaV2Sampler.Settings(
+        temperature=0.9,
+        top_p=0.8,
+        token_repetition_penalty=1.025
+    )
 
     print("Chat started. Type your messages and press Enter. Use CTRL+D to exit.")
 
@@ -22,13 +51,13 @@ def run_inference(model_id, max_token=256):
     conversation_history = []
     first_prompt = True
     tokenizer.add_prefix_space = True
-    eos_chars = ['■']
-    eos_token_ids = utils.get_all_tokens_containing_word(tokenizer, eos_chars)
-    eos_token_ids.append(tokenizer.eos_token_id)
-    print(f"eos_token_ids: {eos_token_ids}")
+    eos_chars = ['###']
+    # eos_token_ids = utils.get_all_tokens_containing_word(tokenizer, eos_chars)
+    # eos_token_ids.append(tokenizer.eos_token_id)
+    # print(f"eos_token_ids: {eos_token_ids}")
     # bad_words = utils.get_tokens_as_list(tokenizer, ["`", "``", "```", "(", ")", ":", "|"])
     # Various fixes
-    model.generation_config.pad_token_id = tokenizer.pad_token_id # HF already does that but it removes the warning
+    # model.generation_config.pad_token_id = tokenizer.pad_token_id # HF already does that but it removes the warning
     sys.stdin.reconfigure(encoding='ISO-8859-1') # Fixes crashing issue with linux terminal
     torch.cuda.empty_cache()
 
@@ -63,7 +92,7 @@ def run_inference(model_id, max_token=256):
                     "  * You are just chatting today.\n"
                     "- Abikebuk: He is a guy.\n"
                               )
-                conversation_history.append(f"{user_input}")
+                conversation_history.append(f"{user_input}\n")
                 first_prompt = False
             else:
                 user_input = (input("> ")
@@ -73,11 +102,12 @@ def run_inference(model_id, max_token=256):
 
             # Save human input
             full_context = "\n".join(conversation_history) + "\n(Ai:)"
-            inputs = tokenizer(full_context, return_tensors="pt").to("cuda")
+            # inputs = tokenizer(full_context, return_tensors="pt").to("cuda")
             # streamer = TextIteratorStreamer(tokenizer, timeout=10., skip_prompt=True, skip_special_tokens=True)
 
             # Create a thread to run the generation
             # generation_kwargs = dict(
+            '''
             output = model.generate(
                 **inputs,
                 eos_token_id=eos_token_ids,
@@ -94,9 +124,23 @@ def run_inference(model_id, max_token=256):
                 length_penalty=1.0,
                 exponential_decay_length_penalty=(128, 1.1)
             )
+            '''
 
+            output = generator.generate(
+                prompt="".join(conversation_history),
+                max_new_tokens=500,
+                add_bos=True,
+                stop_conditions=[tokenizer.eos_token_id, eos_chars[0]],
+                gen_settings=ExLlamaV2Sampler.Settings.greedy()
+            )
+
+            print(output)
+            print()
+
+            conversation_history.append(f"\n{output} {eos_chars[0]}\n")
             # Custom decode
             # Breaks down each token for end of sequence strategies.
+            '''
             response = []
             for i, token in enumerate(output[0]):
                 decoded_token = tokenizer.decode(token)
@@ -110,6 +154,7 @@ def run_inference(model_id, max_token=256):
 
             response = "".join(response)
             generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+            '''
             # response = generated_text[len(full_context):]
 
             # Stream mode | doesn't work with beams
@@ -123,13 +168,13 @@ def run_inference(model_id, max_token=256):
             #    generated_text += text
             #print()  # New line after the complete response
 
-            print(f"(Ai:) {response}")
+            # print(f"(Ai:) {response}")
             # For debug : Print (token_ids, decoded_token) for each token generated
             # print(f"(Tokens:) {[(token.item(), tokenizer.decode(token)) for token in output[0][len(inputs[0]):]]}")
 
             # Save AI response
-            output_token_len = len(output)
-            conversation_history.append(f"(Ai:) {response.strip()} {eos_chars[0]}")
+            # output_token_len = len(output)
+            # conversation_history.append(f"(Ai:) {response.strip()} {eos_chars[0]}")
             torch.cuda.empty_cache()
 
 
