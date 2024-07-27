@@ -83,7 +83,7 @@ Took me a while to find how to make it work but it is functional now.
   * [ ] Train llama3 with reinforcement learning
   * [ ] Personality building
     * [ ] Use Llama3 to build personality to edit a dataset giving it "personality"
-    * [ ] Train the model on the result dataset metioned above
+    * [ ] Train the model on the result dataset mentioned above
   * [ ] Run inference
     * [x] Make inference faster
       * With the use of ExLlamaV2, it is blazing fast!
