@@ -12,5 +12,8 @@ aqlm[gpu,cpu]
 progress_table
 deepspeed~=0.14.4
 auto-gptq
-exllamav2
+exllamav2~=0.1.8
 flash-attn
+huggingface-hub~=0.23.4
+pandas~=2.2.2
+numpy==2.0.0rc2 # numpy 2.0.0 doesn't work with pandas 2.2.2

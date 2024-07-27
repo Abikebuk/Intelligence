@@ -2,6 +2,7 @@ import MLM
 import config
 import Classification
 from Inference import run_inference
+from PreTraining.Alpaca import pretrain_alpaca
 from Training import train
 
 if __name__ == "__main__":
@@ -10,7 +11,8 @@ if __name__ == "__main__":
         # "mlm_inference",
         # "classify",
         # "train",
-        "inference",
+        # "inference",
+        "alpaca"
     ]
 
     mlm_conf = config.MLM
@@ -58,3 +60,6 @@ if __name__ == "__main__":
         )
     if "inference" in to_run:
         run_inference(trainer_conf.model_id)
+
+    if "alpaca" in to_run:
+        pretrain_alpaca()

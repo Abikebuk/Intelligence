@@ -60,3 +60,6 @@ def get_all_tokens_containing_word(tokenizer, words):
                 print((word, token), words)
                 res.append(token_id)
     return res
+
+def bold(text):
+    return f"\033[1m{text}\033[0m"

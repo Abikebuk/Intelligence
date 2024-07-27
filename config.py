@@ -65,5 +65,8 @@ default = {
     "mlm_model_location": "models/mlm_result.pt",
     "classifier_output_location": "data/classified_data.csv",
     "trainer_output_location": "models/fp32result.bin",
+    "hf_models_cache_dir": "models",
+    "hf_datasets_cache_dir": "datasets",
+
 }
 default = DotDict(default)
