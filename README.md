@@ -48,7 +48,7 @@ sudo pacman -S cuda
 # Add missing file, heard it is a conda issue. Change intelligence with whatever env name you use
 ln -s /opt/cuda/lib64/libcurand.so /opt/anaconda/envs/intelligence/lib/python3.10/site-packages/torch/lib/
 # Install other missing library for deepspeed
-conda install -c conda-forge gcc
+conda install -c conda-forge gcc gxx_linux-64 
 # Compile Deepspeed's Adam-cpu
 python -c 'import deepspeed; deepspeed.ops.adam.cpu_adam.CPUAdamBuilder().load()'
 ```
@@ -57,12 +57,12 @@ Took me a while to find how to make it work but it is functional now.
 ## Objective-list
 * Learning Pytorch
   * [x] Find a way to use HuggingFace's model/dataset with Pytorch
-  * [ ] Learn to use ``torch.nn``
+  * [ ] Learn how to use ``torch.nn``
 * BERT
   * [x] Find the right BERT type model to use.  
     - Chose ``distilbert/distilroberta-base``   
-  * [x] Train Roberta with MLM (Maskeked Language Modeling)
-  * [ ] Perfom inference with bert
+  * [x] Train Roberta with MLM (Masked Language Modeling)
+  * [ ] Perform inference with bert
   * [ ] Verify the training goes in the direction I want
   * [x] Classify data with bert
     * Classification works fine but to be tested
