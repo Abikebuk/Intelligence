@@ -1,9 +1,12 @@
+import json
+
 import MLM
 import config
 import Classification
 from Inference import run_inference
-from PreTraining.Alpaca import pretrain_alpaca
+from PreTraining.Alpaca import pretrain_alpaca, parse_output
 from Training import train
+import torch.multiprocessing as mp
 
 if __name__ == "__main__":
     to_run = [
@@ -62,4 +65,5 @@ if __name__ == "__main__":
         run_inference(trainer_conf.model_id)
 
     if "alpaca" in to_run:
+        mp.set_start_method('spawn')
         pretrain_alpaca()
