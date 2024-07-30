@@ -82,7 +82,8 @@ Took me a while to find how to make it work but it is functional now.
   * [ ] Verify the training goes in the direction I want
   * [ ] Train llama3 with reinforcement learning
   * [ ] Personality building
-    * [ ] Use Llama3 to build personality to edit a dataset giving it "personality"
+    * [x] Use Llama3 to build personality to edit a dataset giving it "personality"
+      * By forcing Llama3 to roleplay in conversation, I have been able to convert the Alpaca dataset's data to give each sentence "personality".
     * [ ] Train the model on the result dataset mentioned above
   * [ ] Run inference
     * [x] Make inference faster
