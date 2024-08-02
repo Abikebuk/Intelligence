@@ -1,18 +1,10 @@
 import json
 import re
-from os import execl
-from pickle import FALSE
-from sys import excepthook
-import multiprocessing as mp
-from tkinter import EXCEPTION
 
 import pandas
 from exllamav2 import ExLlamaV2Config, ExLlamaV2, ExLlamaV2Cache, ExLlamaV2Tokenizer, Timer
 from exllamav2.generator import ExLlamaV2DynamicGenerator
 from huggingface_hub import snapshot_download
-from sympy.strategies.core import switch
-from tests.test_generation import generate
-from torchgen.executorch.api.et_cpp import return_type
 from tqdm import tqdm
 
 import utils
@@ -26,6 +18,9 @@ def pretrain_alpaca(dataset_id="yahma/alpaca-cleaned",
                     map_prompt="",
                     output_variation=4,
                     batch_size=32):
+    """
+    @TODO: checkpoint saving
+    """
     # Parameters
     model_dir = f"./{default_config.hf_models_cache_dir}/{model_id}"
     dataset_dir=f"./{default_config.hf_datasets_cache_dir}/{dataset_id}"
@@ -65,7 +60,7 @@ def pretrain_alpaca(dataset_id="yahma/alpaca-cleaned",
 
     # Inference test
     res = []
-
+    fail_count = 0
     for i in tqdm(range(0, len(df), batch_size), desc="Generating new outputs..."):
         batch = df.iloc[i:i+batch_size]
         prompt_batch = []
@@ -76,22 +71,27 @@ def pretrain_alpaca(dataset_id="yahma/alpaca-cleaned",
             prompt_batch.append(prompt)
             prompt_len_batch.append(prompt_len)
 
-        batch_output = generate_batch(generator, tokenizer, prompt_batch, prompt_len_batch)
+        batch_output, total_fail = generate_batch(generator, tokenizer, prompt_batch, prompt_len_batch)
+        fail_count += total_fail
         # Add generation batch to result
         res.extend(batch_output)
 
-    print(res)
     # Convert to dataframe for post processing
     res_df = pandas.DataFrame.from_records(res)
 
     # Print current dataset
     print(res_df)
+    print(f"Total failed generation: {fail_count} | {(len(df)/fail_count) * 100}% failed.")
+
+    # Clean output
+    # df.to_json() fails if some characters exists??? I have no idea where they come from.
+    res_df.applymap(lambda x: x.encode('utf-16', 'surrogatepass').decode('utf-16') if isinstance(x, str) else x)
 
     # Save output
     res_df.to_json(f"{dataset_dir}/result.json", orient="records", indent=2)
 
 
-def generate_json_retry(generator, tokenizer, prompt, retry = 0, prompt_len = None, max_retry=5):
+def generate_json_retry(generator, tokenizer, prompt, retry = 0, prompt_len = None, max_retry=3):
     if retry == max_retry:
         return None
     if prompt_len is None:
@@ -111,17 +111,32 @@ def generate_json_retry(generator, tokenizer, prompt, retry = 0, prompt_len = No
         )
     # print(output)
     json_str_output = output[prompt_len:] # Remove the prompt to the output
+
     json_str_output = f"[{json_str_output}]" # '[' and ']' will be missing form the output
     try:
         json_output = json.loads(json_str_output)
+        for j in json_output:
+            k = list(j.keys())
+            if len(j) != 3:
+                print(f"json.load() found a json without exactly 3 keys: {k}")
+                raise Exception("Not all JSON objects have exactly 3 keys")
+            if not(k[0] == 'instruction' and k[1] == 'input' and k[2] == 'output'):
+                print(f"json.load() found mismatched keys: {k}")
+                raise Exception("JSON objects keys mismatch")
+
+        #if not all(print(j) or len(j) == 3 and all(k[0] == 'instruction' and k[1] == 'input' and k[2] == 'output' for k in list(j.keys())) for j in json_output):
+        #    print(f"json.load() found a json without exactly 3 keys: {json_output.map(lambda x : x.keys())}")
+        #    print(json_output)
+        #    raise Exception("Not all JSON objects have exactly 3 keys")
     except Exception:
         try :
+            print("json.load() failed. Trying json_parse()...")
             json_output = parse_output(json_str_output)
         except Exception:
             json_output = []
     json_len = len(json_output)
     if json_output is None or json_len == 0 or json_len < json_len - 1 or json_len > json_len + 1:
-        print(f"Json size is either wrong, 0 or not the right size. Retry {retry + 1}")
+        print(f"Json size is either wrong, size is not 3. Retrying... Retry n#{retry + 1}")
         return generate_json_retry(generator, tokenizer, prompt, retry + 1, prompt_len)
     else:
         return json_output
@@ -148,24 +163,27 @@ def generate_prompt(output_variation, df, index):
     prompt += first_instruction_fill
     return prompt_len, prompt
 
-def generate_batch(generator, tokenizer, prompt_batch, prompt_len_batch):
+def generate_batch(generator, tokenizer, prompt_batch, prompt_len_batch, total_fail=0):
     batch_output = []
     for prompt, prompt_len in tqdm(zip(prompt_batch, prompt_len_batch), total=len(prompt_batch), desc="Generating rows..."):
         output = generate_json_retry(generator, tokenizer, prompt, prompt_len=prompt_len)
-        if output is not None: # None = skip
+        if output is not None and len(output) != 0: # None = skip
             batch_output.extend(output)
-    return batch_output
+        else: total_fail += 1
+    return batch_output, total_fail
 
 def parse_output(output):
-    '''
+    """
     Parse the output of the LLM to extract the jsons.
     Is not perfect but should succeed to scrap whatever ``json.loads()`` doesn't succeed to load
     Made it this way to optimise time since this algorithm is O(n) in time/space complexity.
     Take in hypothesis that the output is always in the same order instruction -> input -> output
     Take in hypothesis that it is only conversational input and output. It will not work with coding syntax.
+    Seems to be called around ~1/3 of the time (and succeed).
+    @TODO: find a way to remove some code duplication
     :param output: The output of the LLM
     :return: A list of jsons
-    '''
+    """
     if len(output) == 0:
         return []
     # Parsing parameters
@@ -174,30 +192,40 @@ def parse_output(output):
     input_value = ""
     output_value = ""
 
-    # patterns
-    instruction_pattern = insp = '"instruction":"'
-    input_pattern = inp ='","input":"'
-    output_pattern = outp = '","output":"'
-    end_pattern = '"}'
+    # Patterns
+    # The parsing algorithm is actually allowing blank character in between the punctuation characters as commented below
+    instruction_pattern = insp = '"instruction":"' # is actually /"instruction"\s*:\s*"/
+    input_pattern = inp ='","input":"' # is actually /"\s*,\s*"input"\s*:\s*"/
+    output_pattern = outp = '","output":"' # is actually /"\s*,\s*"output"\s*:\s*"/
+    end_pattern = '"}' # is actually /"\s*}/
 
     # Parsing
-    o = output
-    p = 0 # pattern size
-    l = 0 # key length
+
+    o = output # shortcut to the output string
+    p = 0  # matched pattern size. example: for the pattern <"instruction":">, p = 4 means <"ins> has been found
+    # len of the matched pattern.
+    # example for the pattern <"instruction":"> (length of 15)
+    # l = 19 might mean that <"instruction"  :  "> is what has been found in the json parsed.
+    l = 0
     result = []
     for i in range(len(output)):
         match step:
-            case "find_json":
+            case "find_json": # try to find the opening '{' first
                 if o[i] == '{':
                     step = "find_instruction"
-            case "find_instruction":
+            case "find_instruction": # try to find the instruction key
+                # Character match pattern
                 if o[i] == insp[p]:
                     p += 1
+                # Character doesn't match pattern but is a whitespace
                 elif re.match("\s", o[i]) is not None:
+                    # Allows blank character in between punctuation characters but not in between alphabet
                     if re.match("[a-z]", insp[p]) is not None:
                         raise Exception("Found key but was not 'instruction' first.")
+                # Character doesn't match pattern and is not a whitespace
                 else:
                     raise Exception("Found key but was not 'instruction' first.")
+                # Pattern is fully matched
                 if p == len(insp):
                     p = 0
                     step = "read_instruction"
