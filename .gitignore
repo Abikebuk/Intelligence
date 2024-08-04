@@ -1,6 +1,7 @@
 /models/
 /tokens/
 /data/
+/datasets/
 /cache/
 /checkpoint/
 /.idea/
