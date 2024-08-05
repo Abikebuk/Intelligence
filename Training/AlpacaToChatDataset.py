@@ -47,12 +47,14 @@ class AlpacaToChatDataset(Dataset):
         # Generate padding
         padding_length = self.max_len - len(input_ids)
         padding =  torch.tensor([self.tokenizer.pad_token_id] * padding_length)
-        input_ids = torch.cat((input_ids, padding))
-        attention_mask += [0] * padding_length
+        input_ids = torch.cat((input_ids, padding)) # Concat padding to the current input_ids
+
+        # Generate attention_mask
+        attention_mask += torch.tensor([0] * padding_length)
 
         # Return
         return {
-            "input_ids": torch.tensor(input_ids),
-            "attention_mask": torch.tensor(attention_mask),
-            "labels": torch.tensor(input_ids)
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": input_ids
         }
