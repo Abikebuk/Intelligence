@@ -1,21 +1,31 @@
 import json
+import logging
+import os
 
 import MLM
 import config
 import Classification
 from Inference import run_inference
 from PreTraining.Alpaca import pretrain_alpaca, parse_output
-from Training import train
+from Training import train, NewTrainer
 import torch.multiprocessing as mp
 
 if __name__ == "__main__":
+    # Makes deepspeed launchable with "python __main__.py" command instead of "deepspeed __main__.py"
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '9994'
+    os.environ['RANK'] = '0'
+    os.environ['LOCAL_RANK'] = '0'
+    os.environ['WORLD_SIZE'] = '1'
+
     to_run = [
         # "mlm_train",
         # "mlm_inference",
         # "classify",
         # "train",
         # "inference",
-        "alpaca"
+        # "alpaca",
+        "new_train"
     ]
 
     mlm_conf = config.MLM
@@ -67,3 +77,16 @@ if __name__ == "__main__":
     if "alpaca" in to_run:
         mp.set_start_method('spawn')
         pretrain_alpaca()
+
+    if "new_train" in to_run:
+        NewTrainer.train(
+            "unsloth/Meta-Llama-3.1-8B-bnb-4bit",
+            "datasets/yahma/alpaca-cleaned/result.json",
+            download_model=True,
+            batch_size=5,
+            gradient_accumulation_step=4,
+            learning_rate=2e-5,
+            max_length=250,
+            print_dataset_stats=True,
+            disable_deepspeed_logging=True,
+        )

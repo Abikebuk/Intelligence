@@ -238,13 +238,10 @@ def create_config(batch_size, gradient_accumulation_step, learning_rate):
     # DeepSpeed configuration
     ds_config = {
         "train_batch_size": batch_size * gradient_accumulation_step,
-        "bf16": {
-            "enabled": True
-        },
         "zero_optimization": {
             "stage": 2,
             "offload_optimizer": {
-                "device": "nvme",
+                "device": "cpu",
                 "pin_memory": True
             },
             "offload_param": {
