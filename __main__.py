@@ -1,14 +1,13 @@
-import json
-import logging
 import os
 
+import torch.multiprocessing as mp
+
+import Classification
 import MLM
 import config
-import Classification
 from Inference import run_inference
-from PreTraining.Alpaca import pretrain_alpaca, parse_output
+from PreTraining.Alpaca import pretrain_alpaca
 from Training import train, NewTrainer
-import torch.multiprocessing as mp
 
 if __name__ == "__main__":
     # Makes deepspeed launchable with "python __main__.py" command instead of "deepspeed __main__.py"
@@ -83,10 +82,11 @@ if __name__ == "__main__":
             "unsloth/Meta-Llama-3.1-8B-bnb-4bit",
             "datasets/yahma/alpaca-cleaned/result.json",
             download_model=True,
-            batch_size=5,
+            batch_size=4,
             gradient_accumulation_step=4,
             learning_rate=2e-5,
             max_length=250,
-            print_dataset_stats=True,
+            print_dataset_stats=False,
             disable_deepspeed_logging=True,
+            limit_dataset_size=250
         )

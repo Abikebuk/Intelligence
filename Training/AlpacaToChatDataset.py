@@ -15,11 +15,13 @@ class AlpacaToChatDataset(Dataset):
     Returns directly tensors for each element of the dataset
     """
 
-    def __init__(self, dataset_path, tokenizer, max_len=512):
+    def __init__(self, dataset_path, tokenizer, max_len=512, limit_dataset_size=None):
         self.tokenizer = tokenizer
         self.max_len = max_len
         with open(dataset_path, 'r') as f:
             self.data = json.load(f)
+        if limit_dataset_size is not None:
+            self.data = self.data[:limit_dataset_size]
 
     def __len__(self):
         return len(self.data)

@@ -3,6 +3,9 @@ import pathlib
 import pickle
 import statistics
 
+from rich.progress import RenderableColumn
+from rich.text import Text
+
 
 def load_pickle(path):
     if os.path.exists(path):
