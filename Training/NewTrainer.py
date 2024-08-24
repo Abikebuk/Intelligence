@@ -1,9 +1,11 @@
+import json
 import logging
 
 import deepspeed
 import torch
 from huggingface_hub import snapshot_download
 from peft import get_peft_model
+from rich import box
 from rich.console import Console
 from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn, SpinnerColumn, \
     MofNCompleteColumn, TimeElapsedColumn
@@ -28,6 +30,7 @@ def train(model_path, dataset_path, download_model=False, model_revision=None, b
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
     ds_config, lora_config, bnb_config = get_configs(batch_size, gradient_accumulation_step, learning_rate)
     epoch_metrics = []
+    console = Console()
 
     # Load model
     model = AutoModelForCausalLM.from_pretrained(model_cache_dir, local_files_only=True, quantization_config=bnb_config)
@@ -62,20 +65,32 @@ def train(model_path, dataset_path, download_model=False, model_revision=None, b
                   TextColumn("[bold magenta]{task.speed} steps/s"),
                   TimeElapsedColumn(),
                   TimeRemainingColumn(),
-                  transient=False
+                  transient=True
                   ) as pbar:
+        # Progress bar initialization
         total_task = pbar.add_task("[cyan]Total Training", total=len(dataset)*epochs)
         epoch_task = pbar.add_task("[blue]Epoch", total=len(dataset))
         train_task = pbar.add_task("[purple]Epoch Training", total=len(train_dataloader))
         eval_task = pbar.add_task("[green]Epoch Evaluation...", total=len(eval_dataloader))
+
+        # Table initialization
+        # Create the metrics table before the training loop
+        metrics_table = Table(show_header=True, header_style="bold magenta", box=box.SIMPLE)
+        metrics_table.add_column("Epoch", justify="center", style="bold magenta", width=8)
+        metrics_table.add_column("Train Loss", justify="center", style="cyan", width=12)
+        metrics_table.add_column("Train Perplexity", justify="center", style="cyan", width=18)
+        metrics_table.add_column("Eval Loss", justify="center", style="green", width=12)
+        metrics_table.add_column("Eval Perplexity", justify="center", style="green", width=18)
 
         # Train
         for epoch in range(epochs):
             model.train()
             total_train_loss = 0
             total_train_samples = 0
-            pbar.reset(epoch_task, description=f"[blue]Epoch {epoch+1}/{epochs}")
+            pbar.reset(total_task, visible=True)
+            pbar.reset(epoch_task, description=f"[blue]Epoch {epoch + 1}/{epochs}", visible=True)
             pbar.reset(train_task, visible=True)
+            pbar.reset(eval_task, visible=False)
             for batch in train_dataloader:
                 # Deconstructing batch
                 input_ids = batch['input_ids'].to(device)
@@ -138,26 +153,28 @@ def train(model_path, dataset_path, download_model=False, model_revision=None, b
                 "eval_perplexity": eval_perplexity.item()
             })
 
+            # Saving checkpoint and metrics
+            model.save_pretrained(f"checkpoint/{epoch+1}")
+            json_file_path = 'checkpoint/metrics.json'
+
+            # Write the metrics to the JSON file
+            with open(json_file_path, 'w') as json_file:
+                json.dump(epoch_metrics, json_file, indent=4)
+
+            # Clear progress for epoch tasks
+            pbar.update(total_task, visible=False, refresh=True)
+            pbar.update(epoch_task, visible=False, refresh=True)
+            pbar.update(train_task, visible=False, refresh=True)
+            pbar.update(eval_task, visible=False, refresh=True)
+
+            metrics_table.add_row(
+                f"{epoch + 1}/{epochs}",
+                f"{avg_train_loss:.4f}",
+                f"{train_perplexity.item():.4f}",
+                f"{avg_eval_loss:.4f}",
+                f"{eval_perplexity.item():.4f}"
+            )
+            console.clear()
+            console.print(metrics_table, end="\r")
+
     print("Training finished!")
-    # Create and display the table
-    console = Console()
-    table = Table(title="Training and Evaluation Metrics")
-    table.add_column("Epoch", justify="right", style="cyan")
-    table.add_column("Train Loss", justify="right", style="magenta")
-    table.add_column("Train Perplexity", justify="right", style="magenta")
-    table.add_column("Eval Loss", justify="right", style="green")
-    table.add_column("Eval Perplexity", justify="right", style="green")
-
-    for metrics in epoch_metrics:
-        table.add_row(
-            str(metrics["epoch"]),
-            f"{metrics['train_loss']:.4f}",
-            f"{metrics['train_perplexity']:.4f}",
-            f"{metrics['eval_loss']:.4f}",
-            f"{metrics['eval_perplexity']:.4f}"
-        )
-    console.print(table)
-
-    print("Saving model...")
-    model.save_pretrained("checkpoint")
-    print("Saving finished!")
